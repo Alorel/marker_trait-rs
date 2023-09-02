@@ -1,0 +1,39 @@
+[package]
+name = "marker_trait"
+version = "0.1.0"
+edition = "2021"
+publish = false
+rust-version = "1.60.0"
+authors = [
+  "Art <amolc@pm.me>",
+]
+license = "Apache-2.0"
+readme = "README.md"
+description = "Derive a blanket impl for you"
+repository = "https://github.com/Alorel/marker_trait-rs"
+keywords = []
+categories = []
+include = [
+  "src/",
+  "Cargo.toml",
+]
+
+[lib]
+proc-macro = true
+
+[features]
+
+[dependencies]
+proc-macro2 = "1"
+syn = {version = "2", features = ["full"]}
+quote = "1"
+
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = [
+  "--cfg",
+  "doc_cfg",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
