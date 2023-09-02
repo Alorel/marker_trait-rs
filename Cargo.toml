@@ -1,6 +1,6 @@
 [package]
 name = "marker_trait"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 publish = false
 rust-version = "1.60.0"
@@ -9,7 +9,7 @@ authors = [
 ]
 license = "Apache-2.0"
 readme = "README.md"
-description = "Derive a blanket impl for you"
+description = "Implement a blanket implementation for a marker trait."
 repository = "https://github.com/Alorel/marker_trait-rs"
 keywords = []
 categories = []
@@ -18,26 +18,11 @@ include = [
   "Cargo.toml",
 ]
 
-[lib]
-proc-macro = true
-
-[features]
+[workspace]
+members = ["macro"]
 
 [dependencies]
-macroific = {version = "1.1.1", features = ["attr_parse"]}
-proc-macro2 = "1"
-syn = {version = "2", features = ["full"]}
-quote = "1"
+marker_trait_macro = { version = "1", path = "macro" }
 
 [dev-dependencies]
-sealed = "0.5.0"
 static_assertions = "1.1.0"
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = [
-  "--cfg",
-  "doc_cfg",
-]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

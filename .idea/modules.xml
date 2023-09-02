@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/marker-trait.iml" filepath="$PROJECT_DIR$/.idea/rs-lib-template-repo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/marker-trait.iml" filepath="$PROJECT_DIR$/.idea/marker-trait.iml" />
     </modules>
   </component>
 </project>
