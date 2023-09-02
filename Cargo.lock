@@ -59,17 +59,10 @@ dependencies = [
 name = "marker_trait"
 version = "1.0.0"
 dependencies = [
- "marker_trait_macro",
- "static_assertions",
-]
-
-[[package]]
-name = "marker_trait_macro"
-version = "1.0.0"
-dependencies = [
  "macroific",
  "proc-macro2",
  "quote",
+ "static_assertions",
  "syn",
 ]
 

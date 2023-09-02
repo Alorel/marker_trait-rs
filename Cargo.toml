@@ -18,11 +18,14 @@ include = [
   "Cargo.toml",
 ]
 
-[workspace]
-members = ["macro"]
+[lib]
+proc-macro = true
 
 [dependencies]
-marker_trait_macro = { version = "1", path = "macro" }
+macroific = {version = "1.1.1", features = ["attr_parse"]}
+proc-macro2 = "1"
+syn = {version = "2", features = ["full"]}
+quote = "1"
 
 [dev-dependencies]
 static_assertions = "1.1.0"
