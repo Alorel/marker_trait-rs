@@ -24,10 +24,14 @@ proc-macro = true
 [features]
 
 [dependencies]
+macroific = {version = "1.1.1", features = ["attr_parse"]}
 proc-macro2 = "1"
 syn = {version = "2", features = ["full"]}
 quote = "1"
 
+[dev-dependencies]
+sealed = "0.5.0"
+static_assertions = "1.1.0"
 
 [package.metadata.docs.rs]
 all-features = true
