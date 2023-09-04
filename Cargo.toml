@@ -11,8 +11,8 @@ license = "Apache-2.0"
 readme = "README.md"
 description = "Implement a blanket implementation for a marker trait."
 repository = "https://github.com/Alorel/marker_trait-rs"
-keywords = []
-categories = []
+keywords = ["marker", "trait", "blanket", "implementation", "macro"]
+categories = ["development-tools", "rust-patterns"]
 include = [
   "src/",
   "Cargo.toml",
@@ -21,6 +21,9 @@ include = [
 [lib]
 proc-macro = true
 
+[features]
+nightly = ["macroific/nightly"]
+
 [dependencies]
 macroific = {version = "1.1.1", features = ["attr_parse"]}
 proc-macro2 = "1"
@@ -28,4 +31,4 @@ syn = {version = "2", features = ["full"]}
 quote = "1"
 
 [dev-dependencies]
-static_assertions = "1.1.0"
+static_assertions = "1.1"

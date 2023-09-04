@@ -60,9 +60,8 @@ jobs:
             v2-cargo-${{runner.os}}-${{steps.toolchain.outputs.cachekey}}-
             v2-cargo-${{runner.os}}
       - name: Clippy
-        run: clippy --workspace --tests --all-features
+        run: clippy --workspace --tests
       - name: Install cargo-rdme
-        continue-on-error: true
         run: cargo install cargo-rdme --debug --version ^1
       - name: Run cargo-rdme
         run: cargo rdme --check
@@ -79,7 +78,7 @@ jobs:
           - ubuntu-latest
         toolchain:
           - stable
-          - 1.56.0 # min supported by 2021 edition
+          - 1.60.0
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -103,8 +102,8 @@ jobs:
             v2-cargo-${{runner.os}}-${{steps.toolchain.outputs.cachekey}}-
             v2-cargo-${{runner.os}}
       - name: Build
-        run: cargo build --workspace --tests --locked --all-features
+        run: cargo build --workspace --tests --locked
       - name: Test
-        run: cargo test --workspace --locked --all-features
+        run: cargo test --workspace --locked
 #      - name: Test (examples)
 #        run: cargo test --examples --locked --all-features

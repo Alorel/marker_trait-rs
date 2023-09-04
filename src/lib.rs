@@ -1,5 +1,10 @@
 //! Implement a blanket implementation for a marker trait.
 //!
+//! [![MASTER CI status](https://github.com/Alorel/marker_trait-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/Alorel/marker_trait-rs/actions/workflows/ci.yml?query=branch%3Amaster)
+//! [![crates.io badge](https://img.shields.io/crates/v/marker_trait)](https://crates.io/crates/marker_trait)
+//! [![docs.rs badge](https://img.shields.io/docsrs/marker_trait?label=docs.rs)](https://docs.rs/marker_trait)
+//! [![dependencies badge](https://img.shields.io/librariesio/release/cargo/marker_trait)](https://libraries.io/cargo/marker_trait)
+//!
 //! # Basic Example
 //!
 //! ```
@@ -18,8 +23,6 @@
 //! ````
 //!
 //! # Sealed example
-//!
-//! Uses the [`sealed`](https://docs.rs/sealed) crate
 //!
 //! ```
 //! #[marker_trait::marker_trait(sealed)]
@@ -40,21 +43,29 @@
 //!     impl<__AsyncTaskImplementor__> Sealed for __AsyncTaskImplementor__
 //!       where __AsyncTaskImplementor__: Send + 'static {}
 //!
-//!     pub trait Sealed: Send + 'static {}
+//!     pub trait Sealed {}
 //! }
 //! #[automatically_derived]
 //! impl<__MarkerTrait__: Send + 'static + __SealModuleForAsyncTask__::Sealed> AsyncTask for __MarkerTrait__ {}
 //! ````
 
+#![deny(clippy::correctness, clippy::suspicious)]
+#![warn(clippy::complexity, clippy::perf, clippy::style, clippy::pedantic)]
+#![warn(missing_docs)]
+
 use proc_macro::TokenStream as BaseTokenStream;
 
 use macroific::elements::SimpleAttr;
 use macroific::prelude::*;
-use proc_macro2::{Delimiter, Group, Ident, Punct, Span, TokenStream};
-use quote::{format_ident, quote, TokenStreamExt, ToTokens};
-use syn::{GenericParam, ItemTrait, parse_macro_input, PathSegment, TraitBound, TraitBoundModifier, TypeParam, TypeParamBound};
+use proc_macro2::{Delimiter, Group, Ident, Span, TokenStream};
+use quote::{format_ident, quote, ToTokens, TokenStreamExt};
 use syn::parse::{Parse, ParseStream};
+use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
+use syn::{
+    parse_macro_input, GenericParam, ItemTrait, PathSegment, Token, TraitBound, TraitBoundModifier,
+    TypeParam, TypeParamBound,
+};
 
 /// # Options
 ///
@@ -82,7 +93,6 @@ struct Options {
 struct MarkerTrait(ItemTrait);
 
 impl MarkerTrait {
-
     pub fn into_tokens(mut self, options: Options) -> TokenStream {
         let appendage = self.produce_appended_output(options);
         let mut tokens = self.0.into_token_stream();
@@ -107,8 +117,7 @@ impl MarkerTrait {
             let mod_name = format_ident!("__SealModuleFor{}__", ident);
 
             SimpleAttr::AUTO_DERIVED.to_tokens(&mut tokens);
-            tokens.append(Ident::create("mod"));
-            tokens.append(mod_name.clone());
+            tokens.extend(quote! { #[allow(non_snake_case)] mod #mod_name });
 
             tokens.append(Group::new(Delimiter::Brace, {
                 let mut tokens = quote! { use super::*; impl };
@@ -117,39 +126,30 @@ impl MarkerTrait {
                 let sealed_trait_name = Ident::create("Sealed");
 
                 let mut cloned_generics = generics.clone();
-                cloned_generics.params.push(GenericParam::Type(TypeParam {
-                    attrs: Vec::new(),
-                    ident: param_name.clone(),
-                    colon_token: None,
-                    bounds: supertraits.clone(),
-                    eq_token: None,
-                    default: None,
-                }));
+                cloned_generics
+                    .params
+                    .push(make_generic_param(&param_name, supertraits));
 
                 let (g1, _, g3) = cloned_generics.split_for_impl();
 
-                let (_, g2, _) = generics.split_for_impl();
                 g1.to_tokens(&mut tokens);
                 sealed_trait_name.to_tokens(&mut tokens);
                 tokens.append(Ident::create("for"));
-                g2.to_tokens(&mut tokens);
-
                 tokens.append(param_name);
-
                 g3.to_tokens(&mut tokens);
                 tokens.append(Group::new(Delimiter::Brace, TokenStream::new()));
 
                 tokens.extend({
-                    let c = format!("Seals the [`{}`] trait to be implementable only within its module", ident);
+                    let c = format!(
+                        "Seals the [`{}`] trait to be implementable only within its module",
+                        ident
+                    );
                     quote! { #[doc = #c] }
                 });
-
 
                 tokens.append(Ident::create("pub"));
                 tokens.append(Ident::create("trait"));
                 tokens.append(sealed_trait_name.clone());
-                tokens.append(Punct::new_alone(':'));
-                supertraits.to_tokens(&mut tokens);
 
                 tokens.append(Group::new(Delimiter::Brace, TokenStream::new()));
 
@@ -162,10 +162,9 @@ impl MarkerTrait {
                 lifetimes: None,
                 path: syn::Path {
                     leading_colon: None,
-                    segments: [
-                        PathSegment::from(mod_name),
-                        Ident::create("Sealed").into(),
-                    ].into_iter().collect(),
+                    segments: [PathSegment::from(mod_name), Ident::create("Sealed").into()]
+                        .into_iter()
+                        .collect(),
                 },
             }));
         }
@@ -175,14 +174,9 @@ impl MarkerTrait {
 
         let out_ident = Ident::new("__MarkerTrait__", Span::call_site());
 
-        generics.params.push(GenericParam::Type(TypeParam {
-            attrs: Vec::new(),
-            ident: out_ident.clone(),
-            colon_token: None,
-            bounds: supertraits.clone(),
-            eq_token: None,
-            default: None,
-        }));
+        generics
+            .params
+            .push(make_generic_param(&out_ident, supertraits));
 
         let (g1, _, g3) = generics.split_for_impl();
 
@@ -210,7 +204,10 @@ impl Parse for MarkerTrait {
         }
 
         if trait_def.supertraits.is_empty() {
-            return Err(syn::Error::new_spanned(trait_def, "Expected at least one supertrait"));
+            return Err(syn::Error::new_spanned(
+                trait_def,
+                "Expected at least one supertrait",
+            ));
         }
 
         // Check for empty body
@@ -238,4 +235,18 @@ impl Parse for Options {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         AttributeOptions::from_stream(input)
     }
+}
+
+fn make_generic_param(
+    ident: &Ident,
+    bounds: &Punctuated<TypeParamBound, Token![+]>,
+) -> GenericParam {
+    GenericParam::Type(TypeParam {
+        attrs: Vec::new(),
+        ident: ident.clone(),
+        colon_token: None,
+        bounds: bounds.clone(),
+        eq_token: None,
+        default: None,
+    })
 }
