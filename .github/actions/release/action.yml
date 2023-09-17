@@ -1,0 +1,42 @@
+name: Release
+description: Do the release
+inputs:
+  version:
+    description: Version to release
+    required: true
+  changelog:
+    description: The changelog
+    required: true
+  issues-closed:
+    description: Issues we've closed
+runs:
+  using: composite
+  steps:
+    - name: Get last commit sha
+      shell: bash
+      id: last-commit
+      run: echo "sha=$(git log -n 1 --pretty=format:%H)" >> $GITHUB_OUTPUT
+    - name: Push commit
+      shell: bash
+      run: git push
+    - name: Push tag
+      shell: bash
+      run: git push --tags
+    - name: Publish crate
+      shell: bash
+      run: cargo publish --locked --token ${{ secrets.CRATES_IO_TOKEN }}
+    - name: Create release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: false
+        prerelease: false
+        generateReleaseNotes: false
+        commit: ${{ steps.last-commit.outputs.sha }}
+        tag: ${{ inputs.version }}
+        body: ${{ inputs.changelog }}
+    - name: Notify
+      uses: alorel-actions/semantic-release-lite/notify@v0
+      with:
+        tag: ${{ inputs.version }}
+        issues: ${{ inputs.issues-closed }}
+        allow-out-of-sync: true

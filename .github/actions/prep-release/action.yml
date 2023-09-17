@@ -1,0 +1,42 @@
+name: Prep release
+description: Prepare the release
+inputs:
+  release-type:
+    description: Release type
+    required: true
+  version:
+    description: Next version
+    required: true
+outputs:
+  in-sync:
+    description: Sync check
+    value: ${{ steps.sync-check.outputs.in-sync }}
+runs:
+  using: composite
+  steps:
+    - name: Git identity
+      shell: bash
+      run: git config --global user.email "4998038+Alorel@users.noreply.github.com" && git config --global user.name "CI Release"
+    - name: Init toolchain
+      uses: ./.github/actions/init-toolchain
+    - name: Install cargo bump
+      shell: bash
+      run: cargo install cargo-bump --debug --version ^1.1
+    - name: Bump version
+      shell: bash
+      run: cargo bump ${{ inputs.release-type }}
+    - name: Refresh Cargo.lock
+      shell: bash
+      run: cargo build --workspace
+    - name: Git add
+      shell: bash
+      run: git add Cargo.toml Cargo.lock
+    - name: Commit version bump
+      shell: bash
+      run: git commit -m "Bump version to ${{ inputs.version }}"
+    - name: Git tag
+      shell: bash
+      run: git tag "${{ inputs.version }}"
+    - name: Sync check
+      id: sync-check
+      uses: alorel-actions/semantic-release-lite/sync-check@v0

@@ -1,0 +1,29 @@
+name: Init toolchain
+description: Inits the Rust toolchain
+inputs:
+  toolchain:
+    description: Toolchain version
+    default: stable
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Init toolchain
+      uses: dtolnay/rust-toolchain@v1
+      id: toolchain
+      with:
+        toolchain: ${{inputs.toolchain}}
+    - name: Cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: v2-cargo-${{runner.os}}-${{steps.toolchain.outputs.cachekey}}-${{ hashFiles('**/Cargo.lock') }}-test-
+        restore-keys: |
+          v2-cargo-${{runner.os}}-${{steps.toolchain.outputs.cachekey}}-${{ hashFiles('**/Cargo.lock') }}-lint
+          v2-cargo-${{runner.os}}-${{steps.toolchain.outputs.cachekey}}-
+          v2-cargo-${{runner.os}}
