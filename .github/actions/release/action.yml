@@ -47,6 +47,7 @@ runs:
         tag: ${{ inputs.version }}
         body: ${{ inputs.changelog }}
     - name: Notify
+      if: ${{ inputs.issues-closed }}
       uses: alorel-actions/semantic-release-lite/notify@v0
       with:
         tag: ${{ inputs.version }}
