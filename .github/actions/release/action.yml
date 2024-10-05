@@ -17,11 +17,13 @@ runs:
   steps:
     - uses: alorel-actions/cargo/release-git@v1
       with:
-        version: ${{ steps.parse.outputs.next-version }}
-        changelog: ${{ steps.parse.outputs.changelog }}
+        version: ${{ inputs.version }}
+        changelog: ${{ inputs.changelog }}
+
     - name: Publish crate
       shell: bash
       run: cargo publish --locked --token ${{ inputs.crates-io-token }}
+
     - name: Notify
       if: ${{ inputs.issues-closed }}
       uses: alorel-actions/semantic-release-lite/notify@v0
