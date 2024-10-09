@@ -6,13 +6,14 @@ Implement a blanket implementation for a marker trait.
 [![crates.io badge](https://img.shields.io/crates/v/marker_trait)](https://crates.io/crates/marker_trait)
 [![Coverage Status](https://coveralls.io/repos/github/Alorel/marker_trait-rs/badge.svg)](https://coveralls.io/github/Alorel/marker_trait-rs)
 [![dependencies badge](https://img.shields.io/librariesio/release/cargo/marker_trait)](https://libraries.io/cargo/marker_trait)
+
 # Examples
 
 <details><summary>Basic example</summary>
 
 ```rust
 #[marker_trait::marker_trait]
-trait Cloneable: Clone {}
+trait Cloneable: Clone + PartialEq {}
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 struct Wrapper<T>(T);
@@ -24,8 +25,8 @@ assert_eq!(acceptor(Wrapper(1)), Wrapper(1)); // Compiles fine
 
 Generated output:
 ```rust
-trait AsyncTask: Send + 'static {}
-impl<T: Send + 'static> AsyncTask for T {}
+trait Cloneable: Clone + PartialEq {}
+impl<T: Clone + PartialEq> Cloneable for T {}
 ````
 
 </details>

@@ -4,6 +4,7 @@
 //! [![crates.io badge](https://img.shields.io/crates/v/marker_trait)](https://crates.io/crates/marker_trait)
 //! [![Coverage Status](https://coveralls.io/repos/github/Alorel/marker_trait-rs/badge.svg)](https://coveralls.io/github/Alorel/marker_trait-rs)
 //! [![dependencies badge](https://img.shields.io/librariesio/release/cargo/marker_trait)](https://libraries.io/cargo/marker_trait)
+//!
 
 //! # Examples
 //!
@@ -11,7 +12,7 @@
 //!
 //! ```
 //! #[marker_trait::marker_trait]
-//! trait Cloneable: Clone {}
+//! trait Cloneable: Clone + PartialEq {}
 //!
 //! #[derive(Clone, Eq, PartialEq, Debug)]
 //! struct Wrapper<T>(T);
@@ -24,8 +25,8 @@
 //! Generated output:
 #![cfg_attr(doctest, doc = " ````no_test")]
 //! ```
-//! trait AsyncTask: Send + 'static {}
-//! impl<T: Send + 'static> AsyncTask for T {}
+//! trait Cloneable: Clone + PartialEq {}
+//! impl<T: Clone + PartialEq> Cloneable for T {}
 //! ````
 //!
 //! </details>
